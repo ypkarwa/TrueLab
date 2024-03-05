@@ -22,6 +22,7 @@ if (cluster.isPrimary)
     //console.log(`Master ${process.pid} is running`);
     const startTime = performance.now();
     
+    //message reader from workers
     const messageHandler = (msg) => {
         if (msg.type && msg.type === 'numbers') {
             totalSum += msg.sum;
@@ -29,7 +30,7 @@ if (cluster.isPrimary)
             //console.log(`Received ${numbersPerWorker} numbers from worker ${msg.workerId}`);
             
             
-
+            //when all workers are done working
             if (totalNumbersReceived === numbersPerWorker * numCPUs) {
                 console.log(`Total CoinOut: ${totalSum}`);
                 console.log(`Total CoinIn: ${(numbersPerWorker * numCPUs * bet)}`);
@@ -66,8 +67,11 @@ else
     
     let totalPayOfOneWorker = 0;
 
+    //sims per worker
     for (let i = 0; i < numbersPerWorker; i++) 
     {
+
+        //printing progress
         if(i%(numbersPerWorker/10) === 0 && (cluster.worker.id === 1))
         {
             console.log("Progress:" + (i/(numbersPerWorker))*100 +"%");
@@ -76,6 +80,7 @@ else
         
         var totalPayOfOneSpin = 0;
         const reelWindow = [];
+        //reel window generation
         for (let i = 0; i < config.reels.length; i++) {
             const startPosition = Math.floor(Math.random() * config.reels[i].length);
             const visibleSymbols = [];
@@ -90,7 +95,7 @@ else
         }
 
 
-
+        //transposed matrix to print the reel window in proper configuration
         const transposedMatrix = [];
         for (let j = 0; j < 3; j++) {
             transposedMatrix[j] = [];
@@ -104,8 +109,10 @@ else
 
         //console.log(transposedMatrix.map(row => row.join(' ')).join('\n'));
 
+        //win calculation
         let lineSymbolsToEvaluate = new Array(5);
 
+        //cycling through all lines and adding their pay to totalPayOfOneSpin
         for (let i = 0; i < config.lines.length; i++) {
             var paylines = config.lines[i];
             
@@ -120,13 +127,14 @@ else
         
         totalPayOfOneWorker += totalPayOfOneSpin;
     }
+    //sending totalPayOfOneWorker back to Master
     process.send({ type: 'numbers', sum: totalPayOfOneWorker, workerId: cluster.worker.id });
 
 
 }
 
 
-
+//to calculate the pay of one line
 function getPayForLine(lineSymbolsToEvaluate) 
 {
     
@@ -137,6 +145,7 @@ function getPayForLine(lineSymbolsToEvaluate)
     let wildOrPIC1OnlyWin = 0;
     let extendedWin = 0;
 
+    //checking Wild Of A Kind(WildOAK)
     for (reel = 0; reel < lineSymbolsToEvaluate.length; reel++) {
         if (lineSymbolsToEvaluate[reel] !== wildSymbolId) {
             firstNonWildSymbol = lineSymbolsToEvaluate[reel];
@@ -148,7 +157,7 @@ function getPayForLine(lineSymbolsToEvaluate)
 
     wildOrPIC1OnlyWin = config.paytable[pic1SymbolId][wildOAK];
 
-
+    //checking symbol OAK
     for (; reel < lineSymbolsToEvaluate.length; reel++) {
         if (lineSymbolsToEvaluate[reel] === firstNonWildSymbol || lineSymbolsToEvaluate[reel] === wildSymbolId) {
             OAK++;
@@ -157,6 +166,7 @@ function getPayForLine(lineSymbolsToEvaluate)
         }
     }
 
+    //getting pay if the symbol is not scatter
     if(firstNonWildSymbol != 10)
     {
         extendedWin = config.paytable[firstNonWildSymbol][OAK];
@@ -167,6 +177,8 @@ function getPayForLine(lineSymbolsToEvaluate)
     let awardedComboSymbol;
     let awardedOAK;
     let awardedWin = 0;
+
+    //comparing Wild Win with Symbol Win to give max pay of the line
     if (extendedWin > wildOrPIC1OnlyWin) {
         awardedComboSymbol = firstNonWildSymbol;
         awardedOAK = OAK;
