@@ -1,0 +1,16 @@
+{
+  "name": "truelab",
+  "version": "1.0.0",
+  "description": "submission for truelab game studios",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "yash karwa",
+  "license": "ISC",
+  "dependencies": {
+    "cli-progress": "^3.12.0"
+  }
+}
