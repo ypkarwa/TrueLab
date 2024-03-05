@@ -2,7 +2,6 @@ import cluster from 'cluster';
 import os from 'os';
 import { config } from './config.js'
 import { performance }  from 'perf_hooks';
-import { SingleBar } from 'cli-progress';
 
 const args = process.argv;
 const noOfSim = args[2];
